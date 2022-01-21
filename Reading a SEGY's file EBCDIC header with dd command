@@ -1,0 +1,21 @@
+Sometimes you may need just to read a SEGY file EBCDIC header. To accomplish this task without loading the SEGY file in a SEGY viewer,
+we can use the Linux command <<dd>>
+
+<<dd>> is a command-line utility for Unix and Unix-like operating systems whose primary purpose is to convert and copy files.
+The <<dd>> program can also perform conversions on the data as it is copied, including byte order swapping and conversion
+to and from the ASCII and EBCDIC text encodings.
+
+The SEG-Y format is composed of a 3200-byte Textual file header (EBCDIC), followed by a 400-byte binary header
+and followed by a number of variable trace records that are each preceded by a 240-byte Standard Trace Header.
+
+We can read the SEGYs EBCDIC header as follow:
+
+dd if=SEGYFILE.sgy ibs=3200 count=1 conv=ascii | fold
+
+Command explanation:
+1. dd ==> Invoque the command
+2. if <==> input file
+3. ibs <==> input block size
+4. count=1 (reads each byte)
+5. conv=ascii converts EBCDIC to ASCII
+6. | fold allows us to print the text with an 80 column width
