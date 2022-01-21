@@ -1,0 +1,8 @@
+Performing a batch rename with a loop <<for>> in a Linux terminal
+
+for filename in FILE*; do echo mv \"$filename\" \"${filename//FILE/NEW_NAME}\"; done
+
+The above command allows us to check if the file rename is getting as expected. So review the result
+and if you are confident that the command did not mess anything up, then you can pipe it directly to /bin/bash
+
+for filename in FILE*; do echo mv \"$filename\" \"${filename//FILE/NEW_NAME}\"; done | /bin/bash
