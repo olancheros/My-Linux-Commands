@@ -1,0 +1,33 @@
+EBCDIC which stands for the Extended Binary Coded Decimal Interchange Code, is an 8 bit character encoding used on IBM mainframe environment.
+
+<<dd>> is a command-line utility for Unix and Unix-like operating systems whose primary purpose is to convert and copy files. The dd program can also perform conversions on the data as it is copied, including byte order swapping and conversion to and from the ASCII and EBCDIC text encodings.
+
+If the EBCDIC header of a bunch of SEG-Y files have to be updated, how can I do that?
+  a. Fix the EBCDIC header mistake and generate again the SEGY file.
+  b. Use SuisSee software to edit the EBCDIC header, but it works well with small SEGY files and hangs if file is too big.
+  c. Or we can use <<dd command>> from a Linux terminal  Fastest method, no matter the file size, can be done on a multiple files using just a terminal command.
+
+Let’s say that we have the following in the line C30 of an EBCDIC header
+
+C30 ANALYST: OLANCHEROS
+
+And we have to change the word OLANCHEROS for OROMERO4, on a bunch of SEG-Y files.
+
+So, to do that and as Mark Watney said "Hexadecimals to the Rescue"
+
+We know that every line in the EBCDIC header is composed by 80 bytes. So, till the end of line C29, we have: 29*80 = 2320 bytes.
+Now, before the word OLANCHEROS starts, we have 13 bytes C30 ANALYST: OLANCHEROS
+Thus, 2320 + 13 = 2333 bytes
+
+In the following link you may find the EBCDIC code: https://sistemasyoperativos.com/wp-content/uploads/2017/11/EBCDIC.pdf
+
+From the link above, we know that in Hexadecimal format OROMERO4 can be written as:
+D6D9D6D4C5D9D6F4 (but we need two additional blank spaces in order to overwrite the final OS in OLANCHEROS).
+
+So to fix the issue, we can use a loop <<for>> with the <<dd>> command as follow
+
+for fileName in find -type f -name *segy; do printf '\xD6\xD9\xD6\xD4\xC5\xD9\xD6\xF4\x40\x40'| dd of=$fileName count=13 bs=1 seek=2333 conv=notrunc ; done
+
+This method can be used to fix a systematic error in the EBCDIC header of a bunch of SEG-Y files
+
+
