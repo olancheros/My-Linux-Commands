@@ -1,0 +1,11 @@
+One day I had to deliver 1.7 PB of final seismic data products on SEG-Y format and recorded on tape cartirdges 3592-E08 (~9.3 TB capacity). Per client' standard, each SEG-Y file wouldn't be bigger than 1.0 TB. The full dataset was split in chunks of different sizes, so one of the tasks was to identify the size of each chunk and after that generate tables to merge the dataset with a size approximately to 1.0 TB and then proceed to generate the SEG-Y file.
+
+To solve this problem I had a text file named fullData.txt with two columns, one with the path and name of each dataset chunk and the other with its size in GB. So, I used awk to generate the tables with datasets whose sume of sizes doesn't exceed 1.0 TB and save it in a text file as follow:
+
+awk '{sum += $2; if(sum >= 0 && sum <= 1000) {print $1"\t", $2}}' fullData.txt > data01Tape01.tbl
+awk '{sum += $2; if(sum >= 1000 && sum <= 2000) {print $1"\t", $2}}' fullData.txt > data02Tape01.tbl
+...
+awk '{sum += $2; if(sum >= 9000 && sum <= 10000) {print $1"\t", $2}}' fullData.txt > data01Tape02.tbl
+and so on
+
+Once the tables were created, I was able to generate each SEG-Y file no bigger than 1.0 TB.
