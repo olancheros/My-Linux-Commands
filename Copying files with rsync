@@ -1,0 +1,6 @@
+The cp command is used to copy files between directories, but it has not an option to see the copy progress.
+So, to see the progress status we can use the rsync command as follow:
+
+rsync -vP fileToTransfer /directoryOfDestiny
+
+Important to notice that rsync command can be used to copy files into to the local system or to a remote system.
