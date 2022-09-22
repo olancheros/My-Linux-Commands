@@ -1,0 +1,100 @@
+***ls Command***
+
+To list files present in the current directory:
+ls
+
+If we want to see more details like the owner, group, size and time stamps:
+ls -l
+
+Additionaly if we want to see the hidden files, then we use:
+ls -a
+
+***pwd Command***
+
+The pwd (print working directory) command points a user to the absolute path of the current working directory:
+pwd
+
+***cd Command***
+
+cd command allow us to navigate between directories by specifying its absolute path:
+cd /home/user/myDocuments
+
+cd ~ will take us to our home directory
+
+***file Command***
+
+It reveals the type of file and/or directory existing in our Linux system
+file olr.txt
+the output will be ==> olr.txt: ASCII text
+
+***mkdir Command***
+
+It creates a new non-existing directory
+mkdir newDirectory
+
+***touch command***
+
+It creates a new empty file
+touch myNewFile.py
+
+If the file already exists, touch will update the stamp date to the current day
+
+***cat Command***
+
+It creates a new file and lets you type in the needed text. To save the file content we have to press Ctrl + c on our keyboard.
+
+cat > myNewFile.txt
+
+If the file already exists, cat opens the file content in read-only mode.
+
+cat myNewFile.txt
+
+***rm Command***
+
+It deletes a file
+rm myNewFile.txt
+
+To delete a directory
+rm -r myDirectory
+
+WARNING:
+The command rm -rf will delete a directory without asking for confirmation.
+
+***mv Command***
+
+It renames an existing file/directory
+mv myFile.js myFileRenamed.js
+
+***cp Command***
+
+It copies an existing file/directory to a targeted location
+cp myFile.txt /home/user/myTextFiles
+
+***find Command***
+
+It can be used to find files and directories and perform subsequent operations on them.
+
+Search a file with specific name:
+find ./users -name myFile.txt
+It will search for myFile.txt in users directory.
+
+Search a file with pattern:
+find ./users -name *.txt
+It will give all files which have ‘.txt’ at the end
+
+How to find and delete a file with confirmation.
+find ./users -name myFile.txt -exec rm -i {} \;
+When this command is entered, a prompt will come for confirmation, if you want to delete myFile.txt or not. if you enter ‘Y/y’ it will delete the file.
+
+Search for empty files and directories
+find ./users -empty
+This command find all empty folders and files in the entered directory or sub-directories.
+
+Search for file with entered permissions
+find ./users -perm 664
+This command find all the files in the GFG directory or sub-directory with the given permissions
+
+Search text within multiple files
+find ./ -type f -name "*.txt" -exec grep 'Oscar'  {} \;
+This command print lines which have ‘Oscar’ in them and ‘-type f’ specifies the input type is a file.
+
