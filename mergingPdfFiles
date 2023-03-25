@@ -1,0 +1,18 @@
+# To merge PDF files, we can use <<pdfunite>> command, but before that we have to install in our system poppler-utils
+# Once installed, we have to execute just the following command
+
+pdfunite file1.pdf file2.pdf file3 fileN.pdf outputfile.pdf
+
+# Or we can use the ghostscript command, which it's already installed in our Linux system by default
+
+gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=outputFile.pdf file1.pdf file2.pdf file3 fileN.pdf
+
+# Using the -dPDFSETTINGS=/prepress command helpls to improve the low resolution of input files
+
+gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sOutputFile=outputFile.pdf file1.pdf file2.pdf file3 fileN.pdf
+
+# Finally, to shrink the output file size, we can use the following command using as input our output file from the command above
+
+gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/default -dNOPAUSE -dQUIET -dBATCH -dDetectDuplicateImages -dCompressFonts=true -r150 -sOutputFile=compressedOutputFile.pdf outputFile.pdf
+
+# So from the commands above we may see that pdfunite command is the easiest way to merge PDF files, however, gs command has more options to manipulate the output file.
