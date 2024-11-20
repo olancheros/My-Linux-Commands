@@ -1,11 +1,27 @@
-One day, while working I had hundreds of text files that were composed of a bunch of variable prefixes but with a constant suffix.
-My challenge was to update the suffix in those files. So in order to get rid of that task in an automatic way, I did use the following command line
+One day, while working, I encountered hundreds of text files composed of variable prefixes but with a constant suffix.
+My challenge was to update the suffix in those files. So, in order to get rid of that task in an automatic way, I did use the following command line
 
 find -name "*fileName*.txt" -print | xargs sed -i "s/old_suffix_text/new_suffix_text/g"
 
 Explanation:
 
-1. find -name ==> Looks for all the text files with the pattern (*fileName*.txt).
+1. find -name ==> Look for all the text files with the pattern (*fileName*.txt).
 2. xargs ==> Executes the command (in this case <<sed>>) for each result obtained from <<find>> command.
 3. | the pipe ==> Each output form <<find>> command will correspond to the input of <<sed>> command.
-4. sed ==> Performs the "search - replace" inside of the text file.
+4. sed ==> Performs the "search-replace" inside of the text file.
+
+
+-------- Removing white spaces and tabs in a file text with sed --------
+
+sed -e 's/[\t ]//g';/^$/d' input.txt > output.txt
+
+Explanation:
+s/[\t ]//g ==> Look for text to be replaced
+- [\t ] ==> Look for tabs (\t) or white spaces ( )
+- //g ==> Indicate that all tabs and white spaces will be replaced with nothing
+
+;/^$/d ==> Delete all the white lines
+- ; ==> To separate both sed expressions
+- /^$/ ==> This reg-expression looks for empty lines
+d ==> Indicate that all the coincident lines with the pattern have to be deleted
+
