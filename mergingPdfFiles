@@ -21,4 +21,6 @@ gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/default -dNOPAUSE -
 
 qpdf --encrypt [readpass] [ownerpass] 256 -- [infile].pdf [outfile].pdf
 
+qpdf --password=YOURPASSWORD --decrypt [infile].pdf [outfile].pdf
+
 # Keep in mind that [] are not used while running the command.
