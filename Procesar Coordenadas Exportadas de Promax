@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Ejemplo archivo de entrada
+
+# ProMAX Data Export: SRF Ordered Parameter File
+# Area: ucayali2d   Line: g31-1000
+#      Station               X                Y           Elev
+# ---------------------------------------------------------------------------------
+#          962        448020.6        9081557.0          281.1
+#          963        448069.6        9081557.0          276.6
+
+# Iterar sobre todos los archivos .prn en el directorio actual
+for file in *.prn; do
+    # Validar que sea un archivo regular
+    [ -f "$file" ] || continue
+
+    # Nombre del archivo de salida (ej: coords.prn -> coords_mod.csv)
+    outfile="${file%.prn}_mod.csv"
+
+    # Procesar con awk
+    awk '
+    # Eliminar retorno de carro (\r) (válido para archivos que vienen de Windows)
+    { gsub(/\r/, "") }
+
+    # Línea 2: Extraer el valor que sigue a "Line:"
+    NR==2 {
+        for(i=1; i<=NF; i++) {
+            if ($i == "Line:") {
+                val_linea = $(i+1)
+                break
+            }
+        }
+    }
+
+    # Línea 3: Imprimir nuevo encabezado CSV
+    NR==3 { print "Linea,Station,X_Coord,Y_Coord,Elev" }
+
+    # Líneas >= 5: Omitir línea 4 (---) y formatear datos como CSV
+    NR>4 { print val_linea","$1","$2","$3","$4" }
+    ' "$file" > "$outfile"
+
+    echo "✅ Procesado: $file -> $outfile"
+done
