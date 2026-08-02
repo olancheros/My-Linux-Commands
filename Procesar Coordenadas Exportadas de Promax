@@ -36,7 +36,7 @@ for file in *.prn; do
     NR==3 { print "Linea,Station,X_Coord,Y_Coord,Elev" }
 
     # Líneas >= 5: Omitir línea 4 (---) y formatear datos como CSV
-    NR>4 { print val_linea","$1","$2","$3","$4" }
+    NR>4 { print val_linea","$1","$2","$3","$4 }
     ' "$file" > "$outfile"
 
     echo "✅ Procesado: $file -> $outfile"
