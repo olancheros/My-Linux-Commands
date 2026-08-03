@@ -1,0 +1,3 @@
+# Remover finales de línea de Windows (CRLF, \r\n) en archivos de texto que para Unix son (\n)
+sed -i 's/\r$//' update_ebcdic_header.sh
+# Eso quita el \r sobrante de cada línea
