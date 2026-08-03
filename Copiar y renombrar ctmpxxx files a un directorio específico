@@ -1,0 +1,49 @@
+#!/bin/bash
+set -euo pipefail
+
+# Este script copia a un directorio específico un log ctmpxxx de ProMAX y lo renombra
+# según el nombre de la línea
+
+DEST_DIR="/varios/ERAZO/Oscar/Header_Values"
+
+# 1. Encontrar el log con N-1 (penúltimo por número en exec.N.log)
+latest_log=$(ls exec.*.log 2>/dev/null \
+  | awk -F'.' '{print $2, $0}' \
+  | sort -k1,1n \
+  | tail -2 \
+  | head -1 \
+  | awk '{print $2}')
+
+if [[ -z "$latest_log" ]]; then
+  echo "ERROR: No se encontraron al menos dos archivos exec.*.log en el directorio actual." >&2
+  exit 1
+fi
+echo "Log seleccionado (N-1): $latest_log"
+
+# 2. Extraer el nombre de línea desde PROMAX_RUNTIME_DIRECTORY
+line_name=$(grep -m1 "PROMAX_RUNTIME_DIRECTORY" "$latest_log" \
+  | sed 's|.*\/ucayali_cord_o\/\([^/]*\)\/.*|\1|')
+
+if [[ -z "$line_name" ]]; then
+  echo "ERROR: No se encontró 'PROMAX_RUNTIME_DIRECTORY' con el patrón esperado en $latest_log." >&2
+  exit 2
+fi
+echo "Nombre de línea: $line_name"
+
+# 3. Extraer la ruta del archivo fuente (patrón scratch/scratch/ctmp)
+source_file=$(grep "scratch/scratch/ctmp" "$latest_log" | sed 's/^ //g')
+
+if [[ -z "$source_file" ]]; then
+  echo "ERROR: No se encontró ruta 'scratch/scratch/ctmp' en $latest_log." >&2
+  exit 3
+fi
+
+if [[ ! -f "$source_file" ]]; then
+  echo "ERROR: El archivo fuente no existe: $source_file" >&2
+  exit 4
+fi
+
+# 4. Construir nombre de salida y copiar
+output_file="${DEST_DIR}/vels_${line_name}.txt"
+cp "$source_file" "$output_file"
+echo "Copiado: $source_file → $output_file"
