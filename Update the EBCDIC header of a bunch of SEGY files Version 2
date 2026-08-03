@@ -1,0 +1,97 @@
+#!/bin/bash
+#
+# Actualiza texto en el EBCDIC textual header (primeros 3200 bytes) de
+# archivos SEG-Y (.sgy), sin alterar el resto del archivo.
+#
+# Uso:
+#   ./update_ebcdic_header.sh /ruta/a/la/carpeta
+#
+# Requisitos: solo herramientas estándar de Linux (dd, iconv, sed, grep).
+#
+# IMPORTANTE: OLD y NEW deben tener la MISMA longitud en caracteres,
+# para no desplazar el resto de la línea del header.
+
+set -euo pipefail
+
+ENC="CP500"          # Codificación EBCDIC. Alternativa: IBM037
+HEADER_SIZE=3200     # 40 lineas x 80 bytes
+
+# Texto a remplazar
+OLD_TEXT="AREA: UCAYALI  BLOQUE C"
+NEW_TEXT="CUENCA: UCAYALI  AREA C"
+
+if [ "$#" -ne 1 ]; then
+    echo "Uso: $0 /ruta/a/la/carpeta"
+    exit 1
+fi
+
+FOLDER="$1"
+
+if [ ${#OLD_TEXT} -ne ${#NEW_TEXT} ]; then
+    echo "[ERROR] OLD_TEXT (${#OLD_TEXT} chars) y NEW_TEXT (${#NEW_TEXT} chars) no tienen la misma longitud."
+    echo "        Este script no soporta cambiar la longitud del texto. Abortando."
+    exit 1
+fi
+
+shopt -s nullglob
+FILES=("$FOLDER"/*.sgy)
+shopt -u nullglob
+
+if [ ${#FILES[@]} -eq 0 ]; then
+    echo "No se encontraron archivos .sgy en $FOLDER"
+    exit 0
+fi
+
+echo "Se encontraron ${#FILES[@]} archivo(s) .sgy"
+echo
+
+for f in "${FILES[@]}"; do
+    tmp_ascii=$(mktemp)
+    tmp_ascii_new=$(mktemp)
+    tmp_ebcdic_new=$(mktemp)
+
+    # 1) Extraer los primeros HEADER_SIZE bytes y convertir de EBCDIC a ASCII
+    dd if="$f" bs=1 count="$HEADER_SIZE" 2>/dev/null | iconv -f "$ENC" -t ASCII > "$tmp_ascii"
+
+    # 2) Verificar que el texto a reemplazar exista
+    if ! grep -qF "$OLD_TEXT" "$tmp_ascii"; then
+        echo "[AVISO] $f: no se encontró el texto buscado, se omite"
+        rm -f "$tmp_ascii" "$tmp_ascii_new" "$tmp_ebcdic_new"
+        continue
+    fi
+
+    ocurrencias=$(grep -oF "$OLD_TEXT" "$tmp_ascii" | wc -l)
+    if [ "$ocurrencias" -gt 1 ]; then
+        echo "[AVISO] $f: el texto aparece $ocurrencias veces, se reemplazan todas"
+    fi
+
+    # 3) Reemplazar el texto (sed con delimitador '#' para evitar choques con '/')
+    sed "s#${OLD_TEXT}#${NEW_TEXT}#g" "$tmp_ascii" > "$tmp_ascii_new"
+
+    # 4) Verificar que el tamaño del header en bytes no cambió
+    size_before=$(stat -c%s "$tmp_ascii")
+    size_after=$(stat -c%s "$tmp_ascii_new")
+    if [ "$size_before" -ne "$size_after" ]; then
+        echo "[ERROR] $f: el tamaño del header cambiaria ($size_before -> $size_after bytes), se aborta por seguridad"
+        rm -f "$tmp_ascii" "$tmp_ascii_new" "$tmp_ebcdic_new"
+        continue
+    fi
+
+    # 5) Convertir de vuelta a EBCDIC
+    iconv -f ASCII -t "$ENC" "$tmp_ascii_new" > "$tmp_ebcdic_new"
+
+    size_ebcdic=$(stat -c%s "$tmp_ebcdic_new")
+    if [ "$size_ebcdic" -ne "$HEADER_SIZE" ]; then
+        echo "[ERROR] $f: el header EBCDIC resultante mide $size_ebcdic bytes (se esperaban $HEADER_SIZE), se aborta por seguridad"
+        rm -f "$tmp_ascii" "$tmp_ascii_new" "$tmp_ebcdic_new"
+        continue
+    fi
+
+    # 6) Escribir de vuelta en el archivo original, en la misma posicion,
+    #    SIN truncar el resto del archivo (conv=notrunc)
+    dd if="$tmp_ebcdic_new" of="$f" bs=1 count="$HEADER_SIZE" conv=notrunc 2>/dev/null
+
+    echo "[OK] $f: header actualizado"
+
+    rm -f "$tmp_ascii" "$tmp_ascii_new" "$tmp_ebcdic_new"
+done
